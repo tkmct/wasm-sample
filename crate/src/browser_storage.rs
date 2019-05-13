@@ -11,7 +11,7 @@ impl BrowserStorage {
     pub fn new(name: &str) -> Option<BrowserStorage> {
         let window = web_sys::window()?;
         if let Ok(Some(local_storage)) = window.local_storage() {
-            let mut storage = BrowserStorage { local_storage };
+            let storage = BrowserStorage { local_storage };
             Some(storage)
         } else {
             None
