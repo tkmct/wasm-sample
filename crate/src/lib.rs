@@ -1,45 +1,16 @@
+extern crate plasma_client;
 extern crate wasm_bindgen;
 extern crate web_sys;
 
+pub mod browser_storage;
+
+use browser_storage::BrowserStorage;
+use plasma_client::*;
 use wasm_bindgen::prelude::*;
-use web_sys::IdbFactory;
-use web_sys::IdbDatabase;
-use web_sys::IdbObjectStore;
-use web_sys::IdbRequest;
-use web_sys::IdbOpenDbRequest;
-use web_sys::IdbCursor;
 
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
-trait Storage {
-    fn get(&self, k: String) -> String;
-    fn set(&self, k: String, v: String) -> String;
-}
-
-
-struct BrowserStorage {
-    db: IdbDatabase
-}
-
-impl BrowserStorage {
-    fn new(db: IdbDatabase) -> BrowserStorage {
-        BrowserStorage { db: db, }
-    }
-}
-
-impl Storage for BrowserStorage {
-    fn get(&self, k: String) -> String {
-        k
-    }
-
-    fn set(&self, k: String, v: String) -> String {
-        v
-    }
-}
-
-
 
 #[wasm_bindgen(module = "/js/storage.js")]
 extern "C" {
@@ -62,19 +33,12 @@ extern "C" {
 
 #[wasm_bindgen]
 pub fn run() -> Result<(), JsValue> {
-    set_panic_hook();
-
-    let factory = IdbFactory::from();
-    let open_request = IdbFactory::open("storage", 1).unwrap();
-    open_request.set_onsuccess(|| {
-        let db = open_request.result();
-    });
-
+    if let Some(storage) = BrowserStorage::new("plasmaDB") {
+        storage.set("hello", "world");
+        if let Ok(Some(w)) = storage.get("hello") {
+            log(&w);
+        };
+    };
 
     Ok(())
-}
-
-fn set_panic_hook() {
-    #[cfg(feature = "console_error_panic_hook")]
-    console_error_panic_hook::set_once();
 }
